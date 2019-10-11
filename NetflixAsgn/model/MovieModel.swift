@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import Alamofire
 
 class MovieModel{
     
@@ -123,6 +124,100 @@ class MovieModel{
         }.resume()
         
     }
+    
+    func addToWatchList(movieId: Int, accountId: Int, sessionId: String, completion : @escaping ((String) -> Void)) {
+        let parameters: [String: Any] = [
+            "media_type": "movie",
+            "media_id": movieId,
+            "watchlist": true
+        ]
+        
+        Alamofire.request(URL(string: Routes.ROUTE_ADD_WATCH_LIST + "/\(accountId)/watchlist?api_key=\(API.KEY)&session_id=\(sessionId)") ?? "", method: .post, parameters: parameters, headers: [:]).responseData { (response) in
+            guard let data = response.result.value else { return }
+            
+            switch response.result {
+            case .success:
+                
+                do {
+                    let decoder = JSONDecoder()
+                    
+                    let baseResponse = try decoder.decode(AddWatchListResponse.self, from: data)
+                    
+                    if(baseResponse.status_code == 1 || baseResponse.status_code == 12) {
+
+                        completion(baseResponse.status_message)
+                    }
+                }catch let jsonErr {
+                    print("Failure json Err!!! \(jsonErr.localizedDescription)")
+                }
+                break
+                
+            case .failure(let err):
+                print("Err => \(err.localizedDescription)")
+                break
+            }
+        }
+        
+    }
+    
+    
+    func getRatedMovies(sessionId: String, userId: Int, completion : @escaping (String) -> Void){
+        let route = URL(string: "\(Routes.ROUTE_RATED_MOVIES)/\(userId)/rated/movies?api_key=\(API.KEY)&session_id=\(sessionId)")!
+        
+        URLSession.shared.dataTask(with: route) { (data, urlResponse, error) in
+            let response : MovieListResponse? = self.responseHandler(data: data, urlResponse: urlResponse, error: error)
+            if let data = response {
+                completion("Rated List \(data.total_results)")
+            }
+            }.resume()
+    }
+    
+    func getWatchedListMovies(sessionId: String, userId: Int, completion : @escaping ([MovieInfoResponse]) -> Void){
+        let route = URL(string: "\(Routes.ROUTE_RATED_MOVIES)/\(userId)/watchlist/movies?api_key=\(API.KEY)&session_id=\(sessionId)")!
+        
+        URLSession.shared.dataTask(with: route) { (data, urlResponse, error) in
+            let response : MovieListResponse? = self.responseHandler(data: data, urlResponse: urlResponse, error: error)
+            if let data = response {
+                completion(data.results)
+            }
+        }.resume()
+    }
+
+    func postRateMovie(movieId: Int, sessionId: String, completion : @escaping (String) -> Void) {
+        let headers = [
+            "Content-Type": "application/json;charset=utf-8"
+        ]
+        let parameters = ["value": 8.5]
+        
+        Alamofire.request(URL(string: Routes.ROUTE_ADD_RATE_LIST + "/\(movieId)/rating?api_key=\(API.KEY)&session_id=\(sessionId)") ?? "", method: .post, parameters: parameters, headers: headers).responseData { (response) in
+            
+            print("here's the route \(Routes.ROUTE_ADD_RATE_LIST + "/\(movieId)/rating?api_key=\(API.KEY)&session_id=\(sessionId)"))")
+            guard let data = response.result.value else { return }
+            
+            switch response.result {
+            case .success:
+                
+                do {
+                    let decoder = JSONDecoder()
+                    
+                    let baseResponse = try decoder.decode(AddWatchListResponse.self, from: data)
+                    
+                    if(baseResponse.status_code == 1 || baseResponse.status_code == 12) {
+                        print("Success**** \(baseResponse.status_message)")
+                        completion(baseResponse.status_message)
+                    }
+                }catch let jsonErr {
+                    print("Failure json Err!!! \(jsonErr.localizedDescription)")
+                }
+                break
+                
+            case .failure(let err):
+                print("Err => \(err.localizedDescription)")
+                break
+            }
+        }
+    }
+    
     func responseHandler<T : Decodable>(data : Data?, urlResponse : URLResponse?, error : Error?) -> T? {
         let TAG = String(describing: T.self)
         if error != nil {

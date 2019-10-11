@@ -21,7 +21,8 @@ class MovieListCollectionViewCell: UICollectionViewCell {
     let realm = try! Realm()
     
     var movieList : Results<MovieVO>?
-    
+    var movieId: Int = 0
+    var movieTitle: String = ""
     
     override func awakeFromNib() {
         super.awakeFromNib()
@@ -55,7 +56,7 @@ extension MovieListCollectionViewCell: UICollectionViewDataSource{
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let item = collectionView.dequeueReusableCell(withReuseIdentifier: String(describing: MovieInnerCollectionViewCell.self), for: indexPath) as! MovieInnerCollectionViewCell
         item.data = movieList?[indexPath.row]
-        
+//
 //        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(onClickViewDetail))
 //        tapGesture.cancelsTouchesInView = false
 //        item.imageViewMoviePoster.isUserInteractionEnabled = true
@@ -68,14 +69,17 @@ extension MovieListCollectionViewCell: UICollectionViewDataSource{
 extension MovieListCollectionViewCell: UICollectionViewDelegate{
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         let movie = movieList?[indexPath.row]
+        movieId = movie?.id ?? 0
+        movieTitle =  movie?.original_title ?? ""
         delegate?.onClickMovieDetail(id: movie?.id, title: movie?.original_title)
         print(" ===== ID ====== \(movie?.original_title)")
     }
+//    
 //    @objc func onClickViewDetail() {
 //
-//        delegate?.onClickMovieDetail(id: id)
+//        delegate?.onClickMovieDetail(id: movieId, title: movieTitle)
 //    }
-//
+
 }
 
 

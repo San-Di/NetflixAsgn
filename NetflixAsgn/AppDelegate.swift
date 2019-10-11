@@ -18,6 +18,17 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
+//        UserDefaults.standard.removeObject(forKey: "token")
+        let token = UserDefaults.standard.object(forKey: "token")
+        if token == nil {
+            let storyBoard : UIStoryboard = UIStoryboard(name: "Main", bundle:nil)
+            let vc = storyBoard.instantiateViewController(withIdentifier: String(describing: LoginViewController.self)) as! LoginViewController
+//            self.present(vc, animated: true, completion: nil)
+            self.window = UIWindow(frame: UIScreen.main.bounds)
+            self.window?.rootViewController = vc
+            self.window?.makeKeyAndVisible()
+
+        }
         print(Realm.Configuration.defaultConfiguration.fileURL?.absoluteString ?? "")
         return true
     }

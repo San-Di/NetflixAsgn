@@ -8,11 +8,11 @@
 
 import Foundation
 
-enum Categories: String{
-    case Trending
-    case NowPlaying
-    case Upcoming
-    case Toprated
-    case Search
-    case Similar
+enum Categories: String, CaseIterable {
+    case Trending = "Popular"
+    case NowPlaying = "Now Playing"
+    case Upcoming = "Upcoming Movies"
+    case Toprated = "Top Rated"
+    
+    case All = "All"
 }

@@ -1,4 +1,5 @@
 PODS:
+  - Alamofire (4.9.0)
   - Realm (3.17.3):
     - Realm/Headers (= 3.17.3)
   - Realm/Headers (3.17.3)
@@ -10,23 +11,26 @@ PODS:
   - YoutubePlayer-in-WKWebView (0.3.2)
 
 DEPENDENCIES:
+  - Alamofire
   - RealmSwift
   - SDWebImage
-  - YoutubePlayer-in-WKWebView
+  - YoutubePlayer-in-WKWebView (~> 0.3.0)
 
 SPEC REPOS:
   https://github.com/cocoapods/specs.git:
+    - Alamofire
     - Realm
     - RealmSwift
     - SDWebImage
     - YoutubePlayer-in-WKWebView
 
 SPEC CHECKSUMS:
+  Alamofire: afc3e7c6db61476cb45cdd23fed06bad03bbc321
   Realm: 5a1d9d47bfc101dd597668b1a8af4288a2557f6d
   RealmSwift: b7fdc2d18616621c31df5c7a398a45a2163f8eb0
   SDWebImage: 96d7f03415ccb28d299d765f93557ff8a617abd8
   YoutubePlayer-in-WKWebView: f9c20a456c5d99e5f5248e4d2079a5d3b6950d13
 
-PODFILE CHECKSUM: 7cac095e3711c8219bc0b85a716bf745d98c326a
+PODFILE CHECKSUM: 68d791ad2819eeada4df336c4cba41dc3078df73
 
 COCOAPODS: 1.7.5

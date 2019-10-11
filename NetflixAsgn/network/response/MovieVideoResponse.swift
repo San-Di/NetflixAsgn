@@ -14,23 +14,13 @@ struct VideoListResponse: Codable {
 }
 struct MovieVideoResponse : Codable {
     
-    let id : String?
-    let iso_639_1 : String?
-    let iso_3166_1 : String?
-    let key : String?
-    let name : String?
-    let site : Int?
-    let type : String?
-    
-    enum CodingKeys:String,CodingKey {
-      
-        case id
-        case iso_639_1
-        case iso_3166_1
-        case key
-        case name
-        case site
-        case type
-    }
+    let id : String
+    let iso_639_1 : String
+    let iso_3166_1 : String
+    let key : String
+    let name : String
+    let site : String
+    let size: Int
+    let type : String
 
 }

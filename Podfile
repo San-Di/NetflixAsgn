@@ -8,5 +8,6 @@ target 'NetflixAsgn' do
   # Pods for NetflixAsgn
 pod 'RealmSwift'
 pod 'SDWebImage'
-pod 'YoutubePlayer-in-WKWebView'
+pod "YoutubePlayer-in-WKWebView", "~> 0.3.0"
+pod 'Alamofire'
 end

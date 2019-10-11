@@ -108,7 +108,7 @@ extension SearchViewController : UISearchBarDelegate {
             DispatchQueue.main.async {
 
                 results.forEach({ [weak self] (movieInfo) in
-                    MovieInfoResponse.saveMovie(category: Categories.Search.rawValue, data: movieInfo, realm: self!.realm)
+//                    MovieInfoResponse.saveMovie(category: Categories.Search.rawValue, data: movieInfo, realm: self!.realm)
                 })
 
 //                if results.isEmpty {

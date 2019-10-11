@@ -15,10 +15,15 @@ class HomeViewController: UIViewController {
     
     let realm = try! Realm()
     
-    var movieListTrending : Results<MovieVO>?
-    var movieListNowPlaying: Results<MovieVO>?
-    var movieListUpcoming: Results<MovieVO>?
-    var movieListTopRated: Results<MovieVO>?
+    var moviesList = [Categories: Results<MovieVO>]()
+    
+    
+    private var movieListNotifierToken : NotificationToken?
+    
+    var categoriesList : [Categories] {
+        return Categories.allCases
+        
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -43,7 +48,7 @@ class HomeViewController: UIViewController {
     }
 
     fileprivate func fetchTrendingMovies() {
-        let moviesList = realm.objects(MovieVO.self).filter("category = 'Trending'")
+        let moviesList = realm.objects(MovieVO.self).filter("category = '\(Categories.Trending.rawValue)'")
         
         if moviesList.isEmpty{
             MovieModel.shared.fetchTrendingMovies { (movies) in
@@ -51,20 +56,22 @@ class HomeViewController: UIViewController {
                     DispatchQueue.main.async {
                         //                        MovieListResponse.sav
                         MovieInfoResponse.saveMovie(category: Categories.Trending.rawValue, data: movie, realm: self!.realm)
-                        
+//                        let indexPath = [IndexPath(row: 0, section: 0)]
+//                        self?.homeOuterCollectionView.reloadItems(at: indexPath)
                     }
                 })
             }
         }
         else {
-            self.movieListTrending = moviesList
+            self.moviesList[Categories.Trending] = moviesList
+//            let indexPath = [IndexPath(row: 0, section: 0)]
+//            homeOuterCollectionView.reloadItems(at: indexPath)
         }
-        homeOuterCollectionView.reloadData()
     }
     
     fileprivate func fetchTopRatedMovies() {
         
-        let moviesList = realm.objects(MovieVO.self).filter("category = 'Toprated'")
+        let moviesList = realm.objects(MovieVO.self).filter("category = '\(Categories.Toprated.rawValue)'")
         
         if moviesList.isEmpty{
             MovieModel.shared.fetchTopRatedMovies { [weak self] movies in
@@ -72,21 +79,24 @@ class HomeViewController: UIViewController {
                     
                     movies.forEach{ movie in
                         MovieInfoResponse.saveMovie(category: Categories.Toprated.rawValue, data: movie, realm: self!.realm)
+//                        let indexPath = [IndexPath(row: 0, section: 3)]
+//                        self?.homeOuterCollectionView.reloadItems(at: indexPath)
                     }
                     
                 }
                 
             }
         }else {
-            self.movieListTopRated = moviesList
+            self.moviesList[Categories.Toprated] = moviesList
+//            let indexPath = [IndexPath(row: 0, section: 3)]
+//            homeOuterCollectionView.reloadItems(at: indexPath)
         }
         
-        homeOuterCollectionView.reloadData()
     }
     
     fileprivate func fetchNowPlaying() {
         
-        let moviesList = realm.objects(MovieVO.self).filter("category = 'NowPlaying'")
+        let moviesList = realm.objects(MovieVO.self).filter("category = '\(Categories.NowPlaying.rawValue)'")
         
         if moviesList.isEmpty{
             MovieModel.shared.fetchNowPlayingMovies { [weak self] movies in
@@ -94,20 +104,23 @@ class HomeViewController: UIViewController {
                     
                     movies.forEach{ movie in
                         MovieInfoResponse.saveMovie(category: Categories.NowPlaying.rawValue, data: movie, realm: self!.realm)
+//                        let indexPath = [IndexPath(row: 0, section: 1)]
+//                        self?.homeOuterCollectionView.reloadItems(at: indexPath)
                     }
                     
                 }
                 
             }
         }else {
-            self.movieListNowPlaying = moviesList
-           
+            self.moviesList[Categories.NowPlaying] = moviesList
+//            let indexPath = [IndexPath(row: 0, section: 1)]
+//            homeOuterCollectionView.reloadItems(at: indexPath)
         }
-         homeOuterCollectionView.reloadData()
+        
     }
     
     fileprivate func fetchUpcomingMovies() {
-        let moviesList = realm.objects(MovieVO.self).filter("category = 'Upcoming'")
+        let moviesList = realm.objects(MovieVO.self).filter("category = '\(Categories.Upcoming.rawValue)'")
         
         if moviesList.isEmpty{
             MovieModel.shared.fetchUpcomingMovies{ [weak self] movies in
@@ -115,21 +128,53 @@ class HomeViewController: UIViewController {
 
                     movies.forEach{ movie in
                         MovieInfoResponse.saveMovie(category: Categories.Upcoming.rawValue, data: movie, realm: self!.realm)
+//                        let indexPath = [IndexPath(row: 0, section: 2)]
+//                        self?.homeOuterCollectionView.reloadItems(at: indexPath)
                     }
 
                 }
 
             }
         }else {
-            self.movieListUpcoming = moviesList
+            self.moviesList[Categories.Upcoming] = moviesList
+//            let indexPath = [IndexPath(row: 0, section: 2)]
+//            homeOuterCollectionView.reloadItems(at: indexPath)
         }
-         homeOuterCollectionView.reloadData()
+        
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
         self.navigationItem.title = "Movie List"
+    }
+    
+    fileprivate func realmNotiObserver(){
+        moviesList[Categories.NowPlaying] = realm.objects(MovieVO.self)
+        movieListNotifierToken = moviesList[Categories.NowPlaying]?.observe{ [weak self] (changes : RealmCollectionChange) in
+            switch changes {
+            case .initial:
+                // Results are now populated and can be accessed without blocking the UI
+                self?.homeOuterCollectionView.reloadData()
+                break
+            case .update(_, let deletions, let insertions, let modifications):
+                self?.homeOuterCollectionView.performBatchUpdates({
+                    self?.homeOuterCollectionView.deleteItems(at: deletions.map({ IndexPath(row: $0, section: 0)}))
+                    self?.homeOuterCollectionView.insertItems(at: insertions.map({ IndexPath(row: $0, section: 0)}))
+                    self?.homeOuterCollectionView.reloadItems(at: modifications.map({ IndexPath(row: $0, section: 0)}))
+                }, completion: nil)
+                
+                break
+            case .error(let error):
+                fatalError("\(error)")
+                break;
+            }
+        }
+    }
+    
+    
+    deinit {
+        movieListNotifierToken?.invalidate()
     }
     
  }
@@ -139,18 +184,7 @@ extension HomeViewController: UICollectionViewDelegate{
         
         let cell = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: String(describing: TitleSupplementaryCollectionReusableView.self), for: indexPath) as! TitleSupplementaryCollectionReusableView
         
-        switch indexPath.section {
-        case 0:
-            cell.lblSectionTitle.text = "Featured Movies"
-        case 1:
-            cell.lblSectionTitle.text = "Upcoming Movies"
-        case 2:
-            cell.lblSectionTitle.text = "Recommended Movies"
-        case 3:
-            cell.lblSectionTitle.text = "Library"
-        default:
-            cell.lblSectionTitle.text = "Section Headers"
-        }
+        cell.lblSectionTitle.text = categoriesList[indexPath.section].rawValue
         return cell
     }
    
@@ -158,34 +192,27 @@ extension HomeViewController: UICollectionViewDelegate{
 
 extension HomeViewController: UICollectionViewDataSource{
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        let sectionKey = categoriesList[section]
+        if moviesList[sectionKey]?.count ?? 0 < 1 {
+            return 0
+        }
         return 1
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let item = collectionView.dequeueReusableCell(withReuseIdentifier: String(describing: MovieListCollectionViewCell.self), for: indexPath) as! MovieListCollectionViewCell
         item.delegate = self
-        switch indexPath.section {
-        case 0:
-            item.movieList = movieListTrending
-            break
-        case 1:
-            item.movieList = movieListUpcoming
-            break
-//        case 2:
-//            item.sectionCategory = Categories.Upcoming.rawValue
-//            break
-//        case 3:
-//            item.sectionCategory = Categories.Toprated.rawValue
-//            break
-        default:
-            item.movieList = movieListTopRated
-            
-        }
+        let sectionKey = categoriesList[indexPath.section]
+        print("Section key \(sectionKey)")
+        item.movieList = moviesList[sectionKey]
+        
         return item
     }
     
     func numberOfSections(in collectionView: UICollectionView) -> Int {
+        print("NUMber of sections \(moviesList.count)")
         return 4
+        
     }
     
 }
